@@ -11,7 +11,7 @@ public class JumpState
 
     public void Enter()
     {
-
+        player.GetComponent<Animator>().SetTrigger("jump");
     }
 
     public void Update()

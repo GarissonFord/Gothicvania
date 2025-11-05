@@ -4,21 +4,23 @@ using UnityEngine.InputSystem;
 
 public class Player : MonoBehaviour
 {
-    private Rigidbody2D rb;
+    public Rigidbody2D rb { get; private set; }
     private CapsuleCollider2D mainCollider;
     private BoxCollider2D groundCheckCollider;
-    private Animator animator;
+    public Animator animator { get; private set; }
 
     private InputAction moveAction;
     private InputAction jumpAction;
 
-    [SerializeField] private float moveSpeed;
+    public float moveSpeed { get; }
     [SerializeField] private float jumpForce;
 
     [SerializeField] private bool grounded;
 
     // Initial value considering the sprite starts out facing right
     [SerializeField] private int xDirection = 1;
+
+    public StateMachine stateMachine { get; private set; }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -29,47 +31,51 @@ public class Player : MonoBehaviour
         groundCheckCollider = GetComponentInChildren<BoxCollider2D>();
         moveAction = InputSystem.actions.FindAction("Move");
         jumpAction = InputSystem.actions.FindAction("Jump");
+        stateMachine = new StateMachine(this);
+        stateMachine.Initialize(stateMachine.idleState);
     }
 
     // Update is called once per frame
     void Update()
     {
-        Vector2 moveVector = moveAction.ReadValue<Vector2>();
-        rb.linearVelocityX = moveVector.x * moveSpeed;
+        stateMachine.Update();
 
-        xDirection = Mathf.CeilToInt(moveVector.x);
-        animator.SetInteger("x-direction", xDirection);
+        // Vector2 moveVector = moveAction.ReadValue<Vector2>();
+        // rb.linearVelocityX = moveVector.x * moveSpeed;
 
-        if (moveVector.x < 0.0f)
-        {
-            Vector3 localScale = transform.localScale;
-            localScale.x = -1.0f;
-            transform.localScale = localScale;
-        }
-        else if (moveVector.x > 0.0f)
-        {
-            Vector3 localScale = transform.localScale;
-            localScale.x = 1.0f;
-            transform.localScale = localScale;
-        }
+        // xDirection = Mathf.CeilToInt(moveVector.x);
+        // animator.SetInteger("x-direction", xDirection);
 
-        LayerMask mask = LayerMask.GetMask("Ground");
-        if (groundCheckCollider.IsTouchingLayers(mask))
-        {
-            animator.SetBool("grounded", true);
-            grounded = true;
-        } 
-        else
-        {
-            animator.SetBool("grounded", false);
-            grounded = false;
-        }
+        // if (moveVector.x < 0.0f)
+        // {
+            // Vector3 localScale = transform.localScale;
+            // localScale.x = -1.0f;
+            // transform.localScale = localScale;
+        // }
+        // else if (moveVector.x > 0.0f)
+        // {
+            // Vector3 localScale = transform.localScale;
+            // localScale.x = 1.0f;
+            // transform.localScale = localScale;
+        // }
 
-        if (grounded && jumpAction.WasPressedThisFrame())
-        {
-            animator.SetTrigger("jump");
-            rb.AddForceY(jumpForce, ForceMode2D.Impulse);
-        }
+        // LayerMask mask = LayerMask.GetMask("Ground");
+        // if (groundCheckCollider.IsTouchingLayers(mask))
+        // {
+            // animator.SetBool("grounded", true);
+            // grounded = true;
+        // } 
+        // else
+        // {
+            // animator.SetBool("grounded", false);
+            // grounded = false;
+        // }
+
+        // if (grounded && jumpAction.WasPressedThisFrame())
+        // {
+            // animator.SetTrigger("jump");
+            // rb.AddForceY(jumpForce, ForceMode2D.Impulse);
+        // }
     }
 
     private void OnTriggerStay2D(Collider2D collision)
