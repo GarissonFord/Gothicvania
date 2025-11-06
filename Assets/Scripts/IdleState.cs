@@ -5,52 +5,67 @@ public class IdleState : IState
 {
     private Player player;
     // private Rigidbody2D rb;
-    // private Animator animator;
+    private Animator animator;
+
+    public BoxCollider2D groundCheckCollider;
+    [SerializeField] private bool grounded;
 
     private InputAction moveAction;
-    // private InputAction jumpAction;
+    private InputAction jumpAction;
 
     [SerializeField]
-    private int xDirection;
+    private float inputXDirection;
 
     public IdleState(Player player)
     {
         this.player = player;
         // moveAction = InputSystem.actions.FindAction("Move");
+        animator = player.GetComponent<Animator>();
+        groundCheckCollider = player.GetComponentInChildren<BoxCollider2D>();
     }
 
     public void Enter()
     {
         moveAction = InputSystem.actions.FindAction("Move");
-        // jumpAction = InputSystem.actions.FindAction("Jump");
-        // animator = player.GetComponent<Animator>();
+        jumpAction = InputSystem.actions.FindAction("Jump");
     }
 
     public void Update()
     {
         Vector2 moveVector = moveAction.ReadValue<Vector2>();
-        // rb.linearVelocityX = moveVector.x * moveSpeed;
+        player.rb.linearVelocityX = moveVector.x * player.moveSpeed;
 
-        xDirection = Mathf.CeilToInt(moveVector.x);
-        // animator.SetInteger("x-direction", xDirection);
+        inputXDirection = moveVector.x;
+        animator.SetInteger("x-direction", Mathf.CeilToInt(inputXDirection));
 
-        if (xDirection != 0)
+        // Debug.Log("Am I actually in the idle state?");
+
+        if (inputXDirection != 0.0f)
         {
             Exit();
             player.stateMachine.TransitionTo(player.stateMachine.runState);
         }
-
-        // LayerMask mask = LayerMask.GetMask("Ground");
-        // if (groundCheckCollider.IsTouchingLayers(mask))
-        // {
-        // animator.SetBool("grounded", true);
-        // grounded = true;
-        // }
-        // else
-        // {
-        // animator.SetBool("grounded", false);
-        // grounded = false;
-        // }
+        
+        LayerMask mask = LayerMask.GetMask("Ground");
+        
+        if (groundCheckCollider.IsTouchingLayers(mask))
+        {
+            animator.SetBool("grounded", true);
+            grounded = true;
+        }
+        else
+        {
+            animator.SetBool("grounded", false);
+            grounded = false;
+            Exit();
+            player.stateMachine.TransitionTo(player.stateMachine.jumpState);
+        }
+        
+        if (grounded && jumpAction.WasPressedThisFrame())
+        {
+            animator.SetTrigger("jump");
+            player.rb.AddForceY(player.jumpForce, ForceMode2D.Impulse);
+        }
     }
 
     public void Exit() { 
