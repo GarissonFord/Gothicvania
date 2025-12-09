@@ -9,8 +9,8 @@ public class Player : MonoBehaviour
     public BoxCollider2D groundCheckCollider { get; private set; }
     public Animator animator { get; private set; }
 
-    private InputAction moveAction;
-    private InputAction jumpAction;
+    // private InputAction moveAction;
+    // private InputAction jumpAction;
 
     public float moveSpeed;
     public float jumpForce;
@@ -29,8 +29,8 @@ public class Player : MonoBehaviour
         animator = GetComponent<Animator>();
         mainCollider = GetComponent<CapsuleCollider2D>();
         groundCheckCollider = GetComponentInChildren<BoxCollider2D>();
-        moveAction = InputSystem.actions.FindAction("Move");
-        jumpAction = InputSystem.actions.FindAction("Jump");
+        //moveAction = InputSystem.actions.FindAction("Move");
+        //jumpAction = InputSystem.actions.FindAction("Jump");
         stateMachine = new StateMachine(this);
         stateMachine.Initialize(stateMachine.idleState);
     }
@@ -40,7 +40,7 @@ public class Player : MonoBehaviour
     {
         stateMachine.Update();
 
-        Vector2 moveVector = moveAction.ReadValue<Vector2>();
+        // Vector2 moveVector = moveAction.ReadValue<Vector2>();
         // rb.linearVelocityX = moveVector.x * moveSpeed;
 
         // xDirection = Mathf.CeilToInt(moveVector.x);
