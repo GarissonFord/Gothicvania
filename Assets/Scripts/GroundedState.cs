@@ -7,10 +7,11 @@ public abstract class GroundedState : IState
     protected Animator animator;
 
     protected BoxCollider2D groundCheckCollider;
-    [SerializeField] private bool grounded;
+    [SerializeField] protected bool grounded;
 
     protected InputAction moveAction;
     protected InputAction jumpAction;
+    protected InputAction attackAction;
 
     protected float inputXDirection;
 
@@ -25,6 +26,7 @@ public abstract class GroundedState : IState
         groundCheckCollider = player.groundCheckCollider;
         moveAction = InputSystem.actions.FindAction("Move");
         jumpAction = InputSystem.actions.FindAction("Jump");
+        attackAction = InputSystem.actions.FindAction("Attack");
     }
 
     public virtual void Update()
@@ -67,6 +69,13 @@ public abstract class GroundedState : IState
             Vector3 localScale = player.transform.localScale;
             localScale.x = 1.0f;
             player.transform.localScale = localScale;
+        }
+
+        if (grounded && attackAction.WasPressedThisFrame())
+        {
+            Exit();
+            player.animator.SetTrigger("attack");
+            player.stateMachine.TransitionTo(player.stateMachine.attackState);
         }
     }
 

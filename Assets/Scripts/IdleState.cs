@@ -22,6 +22,6 @@ public class IdleState : GroundedState
         {
             Exit();
             player.stateMachine.TransitionTo(player.stateMachine.runState);
-        } 
+        }
     }
 }
