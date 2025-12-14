@@ -21,7 +21,8 @@ public class JumpState : IState
 
     public void Enter()
     {
-        player.GetComponent<Animator>().SetTrigger("jump");
+        animator.SetTrigger("jump");
+        // player.GetComponent<Animator>().SetTrigger("jump");
         moveAction = InputSystem.actions.FindAction("Move");
     }
 

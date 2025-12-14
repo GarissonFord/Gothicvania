@@ -48,7 +48,6 @@ public abstract class GroundedState : IState
 
         if (grounded && jumpAction.WasPressedThisFrame())
         {
-            animator.SetTrigger("jump");
             player.rb.AddForceY(player.jumpForce, ForceMode2D.Impulse);
         }
 
@@ -73,9 +72,8 @@ public abstract class GroundedState : IState
 
         if (grounded && attackAction.WasPressedThisFrame())
         {
-            Exit();
-            player.animator.SetTrigger("attack");
             player.stateMachine.TransitionTo(player.stateMachine.attackState);
+            Exit();
         }
     }
 
