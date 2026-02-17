@@ -3,12 +3,6 @@ using UnityEngine.InputSystem;
 
 public class IdleState : GroundedState
 {
-    /*private Player player;
-    private Animator animator;
-
-    [SerializeField]
-    private float inputXDirection;*/
-
     public IdleState(Player player) : base(player)
     {
 

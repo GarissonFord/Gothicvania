@@ -12,30 +12,39 @@ public class AttackState : GroundedState
     public override void Enter()
     {
         base.Enter();
-        Debug.Log("AttackState entered");
+        // Debug.Log("AttackState entered");
         player.animator.SetTrigger("attack");
-        // player.rb.linearVelocityX = 0.0f;
+        player.rb.linearVelocityX = 0.0f;
+        canMove = false;
         attackState = Animator.StringToHash("Base Layer.PlayerAttack");
     }
 
     public override void Update()
     {
-        // base.Update();
+        base.Update();
 
-        // player.rb.linearVelocityX = 0.0f;
+        player.rb.linearVelocityX = 0.0f;
 
         AnimatorStateInfo animatorState = animator.GetCurrentAnimatorStateInfo(0);
         int currentState = animatorState.fullPathHash;
 
         if (!currentState.Equals(attackState))
         {
-            player.stateMachine.TransitionTo(player.stateMachine.idleState);
+            // Debug.Log("Current state is not attack state, transitioning back");
+            if (inputXDirection == 0.0f)
+            {
+                player.stateMachine.TransitionTo(player.stateMachine.idleState);
+            } else
+            {
+                player.stateMachine.TransitionTo(player.stateMachine.runState);
+            }
+
+            Exit();
         }
     }
 
-    public void OnAttackAnimationEnd(string time)
+    public override void Exit()
     {
-        Debug.Log("attack animation ended at " + time);
-        
+        canMove = true;
     }
 }

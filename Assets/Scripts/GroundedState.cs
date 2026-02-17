@@ -6,14 +6,13 @@ public abstract class GroundedState : IState
     protected Player player;
     protected Animator animator;
 
-    protected BoxCollider2D groundCheckCollider;
-    [SerializeField] protected bool grounded;
-
     protected InputAction moveAction;
     protected InputAction jumpAction;
     protected InputAction attackAction;
 
     protected float inputXDirection;
+
+    protected bool canMove;
 
     public GroundedState(Player player)
     {
@@ -23,7 +22,7 @@ public abstract class GroundedState : IState
 
     public virtual void Enter()
     {
-        groundCheckCollider = player.groundCheckCollider;
+        animator.SetBool("grounded", true);
         moveAction = InputSystem.actions.FindAction("Move");
         jumpAction = InputSystem.actions.FindAction("Jump");
         attackAction = InputSystem.actions.FindAction("Attack");
@@ -31,49 +30,51 @@ public abstract class GroundedState : IState
 
     public virtual void Update()
     {
-        LayerMask mask = LayerMask.GetMask("Ground");
-
-        if (groundCheckCollider.IsTouchingLayers(mask))
+        if (!player.isGrounded)
         {
-            animator.SetBool("grounded", true);
-            grounded = true;
-        }
-        else
-        {
-            animator.SetBool("grounded", false);
-            grounded = false;
             Exit();
             player.stateMachine.TransitionTo(player.stateMachine.jumpState);
         }
 
-        if (grounded && jumpAction.WasPressedThisFrame())
+        if (jumpAction.WasPressedThisFrame())
         {
             player.rb.AddForceY(player.jumpForce, ForceMode2D.Impulse);
+            Exit();
+            player.stateMachine.TransitionTo(player.stateMachine.jumpState);
         }
 
-        Vector2 moveVector = moveAction.ReadValue<Vector2>();
-        player.rb.linearVelocityX = moveVector.x * player.moveSpeed;
-
-        inputXDirection = moveVector.x;
-        animator.SetInteger("x-direction", Mathf.CeilToInt(inputXDirection));
-
-        if (moveVector.x < 0.0f)
+        if (attackAction.WasPressedThisFrame())
         {
-            Vector3 localScale = player.transform.localScale;
-            localScale.x = -1.0f;
-            player.transform.localScale = localScale;
-        }
-        else if (moveVector.x > 0.0f)
-        {
-            Vector3 localScale = player.transform.localScale;
-            localScale.x = 1.0f;
-            player.transform.localScale = localScale;
-        }
-
-        if (grounded && attackAction.WasPressedThisFrame())
-        {
+            Debug.Log("Conditions to transition to attack");
+            player.rb.linearVelocityX = 0.0f;
             player.stateMachine.TransitionTo(player.stateMachine.attackState);
             Exit();
+        } else
+        {
+            canMove = true;
+        }
+
+        if (canMove)
+        {
+            Vector2 moveVector = moveAction.ReadValue<Vector2>();
+            player.rb.linearVelocityX = moveVector.x * player.moveSpeed;
+            
+            inputXDirection = moveVector.x;
+            animator.SetFloat("x-input", Mathf.Abs(inputXDirection));
+            animator.SetInteger("x-direction", Mathf.CeilToInt(inputXDirection));
+
+            if (moveVector.x < 0.0f)
+            {
+                Vector3 localScale = player.transform.localScale;
+                localScale.x = -1.0f;
+                player.transform.localScale = localScale;
+            }
+            else if (moveVector.x > 0.0f)
+            {
+                Vector3 localScale = player.transform.localScale;
+                localScale.x = 1.0f;
+                player.transform.localScale = localScale;
+            }
         }
     }
 

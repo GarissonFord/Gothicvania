@@ -4,31 +4,26 @@ using UnityEngine.InputSystem;
 public class JumpState : IState
 {
     private Player player;
-
     private InputAction moveAction;
-
     private Animator animator;
 
-    public BoxCollider2D groundCheckCollider;
-    // [SerializeField] private bool grounded;
+    private Vector2 moveVector;
 
     public JumpState(Player player)
     {
         this.player = player;
         animator = player.GetComponent<Animator>();
-        groundCheckCollider = player.GetComponentInChildren<BoxCollider2D>();
     }
 
     public void Enter()
     {
-        animator.SetTrigger("jump");
-        // player.GetComponent<Animator>().SetTrigger("jump");
+        animator.SetBool("grounded", false);
         moveAction = InputSystem.actions.FindAction("Move");
     }
 
     public void Update()
     {
-        Vector2 moveVector = moveAction.ReadValue<Vector2>();
+        moveVector = moveAction.ReadValue<Vector2>();
         player.rb.linearVelocityX = moveVector.x * player.moveSpeed;
 
         if (moveVector.x < 0.0f)
@@ -44,24 +39,23 @@ public class JumpState : IState
             player.transform.localScale = localScale;
         }
 
-        LayerMask mask = LayerMask.GetMask("Ground");
-
-        if (groundCheckCollider.IsTouchingLayers(mask))
+        if (player.isGrounded)
         {
-            animator.SetBool("grounded", true);
-            // grounded = true;
             Exit();
-            player.stateMachine.TransitionTo(player.stateMachine.idleState);
-        }
-        else
-        {
-            animator.SetBool("grounded", false);
-            // grounded = false;
             
+            if (moveVector.x != 0.0f)
+            {
+                player.stateMachine.TransitionTo(player.stateMachine.runState);
+            }
+            else
+            {
+                player.stateMachine.TransitionTo(player.stateMachine.idleState);
+            }
         }
     }
 
     public void Exit()
     {
+        
     }
 }
