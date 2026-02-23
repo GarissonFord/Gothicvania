@@ -9,10 +9,12 @@ public abstract class GroundedState : IState
     protected InputAction moveAction;
     protected InputAction jumpAction;
     protected InputAction attackAction;
+    protected InputAction testKnockbackAction;
 
     protected float inputXDirection;
 
     protected bool canMove;
+    protected bool facingRight;
 
     public GroundedState(Player player)
     {
@@ -26,6 +28,9 @@ public abstract class GroundedState : IState
         moveAction = InputSystem.actions.FindAction("Move");
         jumpAction = InputSystem.actions.FindAction("Jump");
         attackAction = InputSystem.actions.FindAction("Attack");
+        testKnockbackAction = InputSystem.actions.FindAction("Interact");
+
+        canMove = true;
     }
 
     public virtual void Update()
@@ -45,41 +50,72 @@ public abstract class GroundedState : IState
 
         if (attackAction.WasPressedThisFrame())
         {
-            Debug.Log("Conditions to transition to attack");
+            // Debug.Log("Conditions to transition to attack");
             player.rb.linearVelocityX = 0.0f;
             player.stateMachine.TransitionTo(player.stateMachine.attackState);
             Exit();
-        } else
-        {
-            canMove = true;
         }
 
         if (canMove)
         {
-            Vector2 moveVector = moveAction.ReadValue<Vector2>();
-            player.rb.linearVelocityX = moveVector.x * player.moveSpeed;
-            
-            inputXDirection = moveVector.x;
-            animator.SetFloat("x-input", Mathf.Abs(inputXDirection));
-            animator.SetInteger("x-direction", Mathf.CeilToInt(inputXDirection));
+            HandleMovement();
+        }
 
-            if (moveVector.x < 0.0f)
-            {
-                Vector3 localScale = player.transform.localScale;
-                localScale.x = -1.0f;
-                player.transform.localScale = localScale;
-            }
-            else if (moveVector.x > 0.0f)
-            {
-                Vector3 localScale = player.transform.localScale;
-                localScale.x = 1.0f;
-                player.transform.localScale = localScale;
-            }
+        // To test the hurt animation
+        if (testKnockbackAction.WasPressedThisFrame())
+        {
+            animator.SetTrigger("hurt");
+            Knockback();
         }
     }
 
     public virtual void Exit()
     {
+        
+    }
 
+    private void HandleMovement()
+    {
+        Vector2 moveVector = moveAction.ReadValue<Vector2>();
+        player.rb.linearVelocityX = moveVector.x * player.moveSpeed;
+
+        inputXDirection = moveVector.x;
+        animator.SetFloat("x-input", Mathf.Abs(inputXDirection));
+        animator.SetInteger("x-direction", Mathf.CeilToInt(inputXDirection));
+
+        if (moveVector.x < 0.0f)
+        {
+            Vector3 localScale = player.transform.localScale;
+            localScale.x = -1.0f;
+            player.transform.localScale = localScale;
+            facingRight = false;
+        }
+        else if (moveVector.x > 0.0f)
+        {
+            Vector3 localScale = player.transform.localScale;
+            localScale.x = 1.0f;
+            player.transform.localScale = localScale;
+            facingRight = true;
+        }
+    }
+
+    private void Knockback()
+    {
+        player.rb.AddForce(-player.rb.linearVelocity, ForceMode2D.Impulse);
+        //Debug.Log("x velocity after initial force: " + rb.velocity.x);
+
+        Vector2 knockbackVector;
+
+        if (facingRight)
+        {
+            knockbackVector = (Vector2.left + Vector2.up) * player.knockbackForce;
+        }
+        else
+        {
+            knockbackVector = (Vector2.right + Vector2.up) * player.knockbackForce;
+        }
+
+        Debug.Log("knockbackVector: " + knockbackVector);
+        player.rb.AddForce(knockbackVector, ForceMode2D.Impulse);
     }
 }

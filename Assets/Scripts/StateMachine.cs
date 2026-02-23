@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-[Serializable]
+[SerializableAttribute]
 public class StateMachine
 {
     public IState CurrentState { get; private set; }
